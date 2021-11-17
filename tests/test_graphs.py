@@ -1,4 +1,4 @@
-from cspatterns import graphs
+from cspatterns.datastructures import graphs
 
 def test_undirected():
     ug = graphs.UndirectedGraph()
