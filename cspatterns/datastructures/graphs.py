@@ -95,9 +95,12 @@ class WeightedUndirectedGraph(UndirectedGraph):
         self._total_weight = self._total_weight - self._weights.get(key, 0) + weight
         self._weights[key] = weight
 
-    def get_weight(self, v, w) -> float:
+    def get_weight(self, v, w, default=None) -> float:
         key = self._key(v,w)
         if key in self._weights:
             return self._weights[key]
         else:
-            raise Exception('The edge {} is not present', key)
+            if default is None:
+                raise Exception('The edge {} is not present', key)
+            else:
+                return default

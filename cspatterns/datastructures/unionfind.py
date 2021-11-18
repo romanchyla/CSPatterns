@@ -15,7 +15,7 @@ class UnionFind(object):
         if values:
             for v in values:
                 self.get_key(v)
-        print(self._map, self._data, self._size, self._num_components)
+        #print(self._map, self._data, self._size, self._num_components)
 
     def get_key(self, v):
         key = self._map.get(v, len(self._map))
@@ -60,3 +60,10 @@ class UnionFind(object):
 
     def size(self):
         return len(self._data)
+
+
+    def compress(self):
+        for i, v in enumerate(self._data):
+            p = self.get_parent(v)
+            self._data[i] = p
+        return self._data
