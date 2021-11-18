@@ -26,7 +26,7 @@ class UnionFind(object):
             self._num_components += 1
         return key
 
-    def get_parent(self, v):
+    def find(self, v):
         parent = self.get_key(v)
         data = self._data
 
@@ -35,12 +35,17 @@ class UnionFind(object):
         return parent
 
     def join(self, v, w):
-        parentv = self.get_parent(v)
-        parentw = self.get_parent(w)
+        parentv = self.find(v)
+        parentw = self.find(w)
 
         if parentv == parentw:
             return
         
+        # connect the smaller to the bigger - that way
+        # we are making sure that the tree height is
+        # staying minimal (if we were to connect bigger
+        # to smaller we are doing the opposite - growing
+        # tree height)
         if self._size[parentv] > self._size[parentw]:
             parentv, parentw = parentw, parentv
 
@@ -50,7 +55,7 @@ class UnionFind(object):
 
     
     def is_connected(self, v, w):
-        return self.get_parent(v) == self.get_parent(w)
+        return self.find(v) == self.find(w)
 
 
     def num_components(self) -> int:
@@ -64,6 +69,6 @@ class UnionFind(object):
 
     def compress(self):
         for i, v in enumerate(self._data):
-            p = self.get_parent(v)
+            p = self.find(v)
             self._data[i] = p
         return self._data
