@@ -36,7 +36,7 @@ def get_git_version(default="0.0.1"):
         return default
 
 setup(
-    name='rprojc',
+    name='cspatterns',
     version=get_git_version(default="0.0.1"),
     classifiers=[
                  'Programming Language :: Python :: 3',
@@ -50,10 +50,5 @@ setup(
     include_package_data=True,
     zip_safe=False,
     platforms='any',
-    install_requires=required,
-    #entry_points={
-    #      'kombu.serializers': [
-    #          'adsmsg = adsputils.serializer:register_args'
-    #      ]
-    #  }
+    install_requires=required
   )
