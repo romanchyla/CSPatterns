@@ -1,7 +1,45 @@
+from collections import defaultdict
 from cspatterns.datastructures import graphs, unionfind
 import heapq
 
-class KruskalMST(object):
+class MST(object):
+    def __init__(self, graph: graphs.WeightedUndirectedGraph):
+        self.graph = graph
+        self.mst = None
+    def extract(self):
+        if self.mst:
+            return self.mst
+        for mst in self.iter():
+            pass
+        self.mst = mst
+        return mst
+
+class BoruvkaMST(MST):
+    """
+    I was thinking about growing the MST in a similar fashion
+    to Kruskal's but rather than by adding minimum edges, by 
+    adding minimum edges that would grow existing (or new) MSTs
+    and it turns out, this is what Boruvka's algorithm is doing;
+    which gives me hope it is correct"""
+
+    def iter(self):
+        mst_tree = defaultdict(unionfind.UnionFind())
+        pq = []
+        for v,w,weight in self.graph.edges():
+            pq.append((weight, v, w))
+        heapq.heapify(pq)
+
+        while pq:
+            weight, v, w = heapq.heappop(pq)
+            if v not in mst_tree:
+                mst_tree[v].join(v, w)
+            else:
+                uf = mst_tree[v]
+                if uf.is_connected(v, w):
+                    uf.join(v,w)
+                    yield mst_tree
+
+class KruskalMST(MST):
     """
     Find MST by growing it from the edges
     O(E logE)
@@ -9,11 +47,8 @@ class KruskalMST(object):
     We are using UnionFind to identify connected
     components
     """
-    def __init__(self, graph: graphs.WeightedUndirectedGraph):
-        self.graph = graph
-        self.mst = None
 
-    def extract(self) -> graphs.WeightedUndirectedGraph:
+    def iter(self) -> graphs.WeightedUndirectedGraph:
 
         pq = []
         for v,w,weight in self.graph.edges():
@@ -23,18 +58,18 @@ class KruskalMST(object):
         union = unionfind.UnionFind()
         mst = graphs.WeightedUndirectedGraph()
 
-        while pq:
+        while pq and mst.num_edges() < self.graph.num_vertices()-1:
             weight, v, w = heapq.heappop(pq)
             if not union.is_connected(v, w):
                 union.join(v, w)
                 mst.add(v, w, weight)
+                yield mst
 
-        return mst
+        yield mst
 
 
 
-
-class PrimMST(object):
+class PrimMST(MST):
     """
     Find MST using arbitrary vertex as a starting point
     and proceed taking the smallest edge not yet visited.
@@ -45,14 +80,8 @@ class PrimMST(object):
     Time: O(ElogE) - E dominates with setting/getting minimum
     Space: E
     """
-    def __init__(self, graph: graphs.WeightedUndirectedGraph) -> None:
-        self.graph = graph
-        self.mst = None
         
-    def extract(self) -> graphs.WeightedUndirectedGraph:
-        if self.mst:
-            return self.mst
-        
+    def iter(self) -> graphs.WeightedUndirectedGraph:
         heap = []
         mst = graphs.WeightedUndirectedGraph()
         g = self.graph
@@ -65,18 +94,17 @@ class PrimMST(object):
         seen.add(v)
 
         # keep growing the tree using the smallest vertices first
-        while len(heap):
+        while len(heap) and mst.num_edges() < self.graph.num_vertices() - 1:
             edge_weight, v, w = heapq.heappop(heap)
             if w not in seen:
                 mst.add(v,w,edge_weight)
-
+                yield mst
                 for ww,weight in g.adj(w):
                     if ww not in seen:
                         heapq.heappush(heap, (weight, w, ww))
                 seen.add(w)
 
-        self.mst = mst
-        return self.mst
+        yield mst
 
 
 
