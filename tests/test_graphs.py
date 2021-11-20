@@ -14,6 +14,9 @@ def test_undirected():
     assert sorted(list(ug.vertices())) == [1, 2, 3, 4]
     assert sorted(list(ug.edges())) == [(1,2), (1,3), (3,4)]
 
+    ug.delete(1, 3)
+    assert ug.num_vertices() == 4
+    assert ug.num_edges() == 2
 
 def test_weighted_undirected():
     ug = graphs.WeightedUndirectedGraph()
@@ -32,4 +35,9 @@ def test_weighted_undirected():
     assert ug.total_weight() == 9.0
     ug.add(1,2,0.0)
     assert ug.total_weight() == 7.0
+
+    ug.delete(1, 3)
+    assert ug.num_vertices() == 4
+    assert ug.num_edges() == 2
+    assert ug.total_weight() == 3.0
 

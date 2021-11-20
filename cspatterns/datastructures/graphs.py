@@ -33,6 +33,22 @@ class UndirectedGraph(object):
 
         self.E += (len(self._edges[v]) - old_v + len(self._edges[w]) - old_w) // 2
 
+    def delete(self, v, w):
+        x = 0
+        if v in self._edges and w in self._edges[v]:
+            self._edges[v].remove(w)
+            if len(self._edges[v]) == 0:
+                del self._edges[v]
+            x +=1
+        if w in self._edges and v in self._edges[w]:
+            self._edges[w].remove(v)
+            if len(self._edges[w]) == 0:
+                del self._edges[w]
+            x +=1
+        
+        self.E -= max(min(x, 1), 0)
+
+
     def vertices(self) -> object:
         if self.E:
             for k in self._edges.keys():
@@ -74,7 +90,13 @@ class WeightedUndirectedGraph(UndirectedGraph):
         key = self._key(v,w)
         self._total_weight = self._total_weight - self._weights.get(key, 0) + weight
         self._weights[key] = weight
-        
+
+    def delete(self, v, w):
+        super().delete(v,w)
+        key = self._key(v,w)
+        weight = self._weights[key]
+        del self._weights[key]
+        self._total_weight -= weight
     
     def edges(self):
         for v,w in super().edges():

@@ -9,7 +9,7 @@ class MST(object):
     def extract(self):
         if self.mst:
             return self.mst
-        for mst in self.iter():
+        for _, mst in self.iter():
             pass
         self.mst = mst
         return mst
@@ -63,9 +63,9 @@ class KruskalMST(MST):
             if not union.is_connected(v, w):
                 union.join(v, w)
                 mst.add(v, w, weight)
-                yield mst
+                yield union.num_components(), mst
 
-        yield mst
+        yield 1, mst
 
 
 
@@ -98,13 +98,13 @@ class PrimMST(MST):
             edge_weight, v, w = heapq.heappop(heap)
             if w not in seen:
                 mst.add(v,w,edge_weight)
-                yield mst
+                yield 1, mst
                 for ww,weight in g.adj(w):
                     if ww not in seen:
                         heapq.heappush(heap, (weight, w, ww))
                 seen.add(w)
 
-        yield mst
+        yield 1, mst
 
 
 
