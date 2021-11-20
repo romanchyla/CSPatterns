@@ -58,6 +58,10 @@ class KruskalMST(MST):
         union = unionfind.UnionFind()
         mst = graphs.WeightedUndirectedGraph()
 
+        # populate the union with vertices
+        for v in self.graph.vertices():
+            union.get_key(v)
+
         while pq and mst.num_edges() < self.graph.num_vertices()-1:
             weight, v, w = heapq.heappop(pq)
             if not union.is_connected(v, w):

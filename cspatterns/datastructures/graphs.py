@@ -1,4 +1,5 @@
 from collections import defaultdict
+from cspatterns.datastructures import unionfind
 
 class Node(object):
     def __init__(self, val, left=None, right=None) -> None:
@@ -11,9 +12,11 @@ class UndirectedGraph(object):
     """
     Undirected graph using adjacency list
     """
-    def __init__(self):
+    def __init__(self, *edges):
         self._edges = defaultdict(set)
         self.E = 0
+        for edge in edges:
+            self.add(*edge)
 
     def _key(self, v, w):
         if v <= w:
@@ -79,11 +82,21 @@ class UndirectedGraph(object):
         else:
             raise StopIteration
 
+    def find_connected_components(self):
+        uf = unionfind.UnionFind(values=self.vertices())
+        for e in self.edges():
+            uf.join(e[0], e[1])
+        uf.compress()
+        ccs = defaultdict(list)
+        for e in self.edges():
+            ccs[uf.find(e[0])].append(e)
+        return list(ccs.values())
+
 class WeightedUndirectedGraph(UndirectedGraph):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._weights = {}
         self._total_weight = 0.0
+        super().__init__(*args, **kwargs)
 
     def add(self, v, w, weight):
         super().add(v,w)

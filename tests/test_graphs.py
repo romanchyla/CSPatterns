@@ -1,6 +1,9 @@
 from cspatterns.datastructures import graphs
 
 def test_undirected():
+    ug = graphs.UndirectedGraph((5, 6), (5, 7), (6, 7))
+    assert sorted(ug.edges()) == [(5, 6), (5, 7), (6, 7)]
+
     ug = graphs.UndirectedGraph()
     ug.add(1,2)
     ug.add(1,2)
@@ -18,7 +21,18 @@ def test_undirected():
     assert ug.num_vertices() == 4
     assert ug.num_edges() == 2
 
+    ug.add(5,6)
+    ug.add(6,7)
+    ug.add(5,7)
+
+    assert ug.find_connected_components() == [[(1, 2)], [(3, 4)], [(5, 6), (5, 7), (6, 7)]]
+
+
+
 def test_weighted_undirected():
+    ug = graphs.WeightedUndirectedGraph((5, 6, 1.0), (5, 7, 3.0), (6, 7, 2.0))
+    assert sorted(ug.edges()) == [(5, 6, 1.0), (5, 7, 3.0), (6, 7, 2.0)]
+
     ug = graphs.WeightedUndirectedGraph()
     ug.add(1,2,1.0)
     ug.add(1,2,2.0)
@@ -41,3 +55,9 @@ def test_weighted_undirected():
     assert ug.num_edges() == 2
     assert ug.total_weight() == 3.0
 
+    ug.add(5,6,1.0)
+    ug.add(6,7,2.0)
+    ug.add(5,7,3.0)
+
+    assert ug.find_connected_components() == [[(1, 2, 0.0)], [(3, 4, 3.0)], [(5, 6, 1.0), (5, 7, 3.0), (6, 7, 2.0)]]
+    
