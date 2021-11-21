@@ -1,11 +1,132 @@
 from collections import defaultdict
 from cspatterns.datastructures import unionfind
 
-class Node(object):
-    def __init__(self, val, left=None, right=None) -> None:
-        self.val = val
-        self.left = left
-        self.right = right
+class DirectedGraph(object):
+    """
+    DG using adjacency list
+    """
+    def __init__(self, *edges):
+        self._src = defaultdict(set)
+        self.E = 0
+        for edge in edges:
+            self.add(*edge)
+
+    def _key(self, v, w):
+        return (v, w)
+    
+    def has(self, v, w) -> bool:
+        return v in self._src and self._src[v].get(w, False)
+
+    def add(self, v, w):
+        old_v = len(self._src[v])
+        self._src[v].add(w)
+        self.E += len(self._src[v]) - old_v
+
+    def delete(self, v, w):
+        x = 0
+        if v in self._src and w in self._src[v]:
+            self._src[v].remove(w)
+            if len(self._src[v]) == 0:
+                del self._src[v]
+            x +=1
+        self.E -= max(min(x, 1), 0)
+
+
+    def vertices(self) -> object:
+        for k in self._src.keys():
+            yield k
+
+    def edges(self) -> object:
+        for v in self.vertices():
+            for w in self.adj(v):
+                yield (v, w)
+
+    def num_vertices(self) -> int:
+        return len(self._src)
+
+    def num_edges(self) -> int:
+        return self.E
+
+    def adj(self, v) -> object:
+        if v in self._src:
+            for x in self._src[v]:
+                yield x
+        else:
+            raise StopIteration
+
+    def reverse(self):
+        grev = DirectedGraph()
+        for v,w in self.edges():
+            grev.add(w, v)
+        return grev
+
+    def topological_sort(self):
+        stack = []
+        seen = set()
+        out = []
+        for v in self.vertices():
+            if v not in seen:
+                stack.append(v)
+
+                while stack:
+                    while stack[-1] not in seen:
+                        n = stack[-1]
+                        for w in self.adj(n):
+                            if w not in seen:
+                                stack.append(w)
+                        seen.add(n)
+                    out.append(stack.pop())
+        return out          
+
+
+    def find_connected_components(self):
+        """
+        Kosaraju topological sort to identify strongly
+        connected components; even if the graph may 
+        contain cycles. We take care to use iterative
+        approach (instead of recursion) in case we have
+        to deal with large graphs
+
+
+        @return: List[int, [int, int], ....]
+                the nested list identifies cyclic connected 
+                components
+        """
+
+        grev = self.reverse()
+        ts = grev.topological_sort()
+
+        ccs = []
+        pointer = None
+        seen = set()
+        stack = []
+        print('ts', ts)
+        for v in ts:
+            print(v, seen)
+            if v not in seen:
+                cycle_found = False
+                out = []
+                    
+                stack.append(v)
+                while stack:
+                    print('loop', stack, out, seen)
+                    x = stack.pop()
+                    if x not in seen:
+                        for w in self.adj(x):
+                            stack.append(w)
+                        out.append(x)
+                        seen.add(x)
+                    elif x == v:
+                        cycle_found = True
+
+                if cycle_found:
+                    ccs.append(out)
+                else:
+                    ccs.extend(out)
+        return ccs
+            
+
+
 
 
 class UndirectedGraph(object):
@@ -13,7 +134,7 @@ class UndirectedGraph(object):
     Undirected graph using adjacency list
     """
     def __init__(self, *edges):
-        self._edges = defaultdict(set)
+        self._src = defaultdict(set)
         self.E = 0
         for edge in edges:
             self.add(*edge)
@@ -25,28 +146,28 @@ class UndirectedGraph(object):
             return (w, v)
     
     def has(self, v, w) -> bool:
-        return v in self._edges and self._edges[v].get(w, False)
+        return v in self._src and self._src[v].get(w, False)
 
     def add(self, v, w):
-        old_v = len(self._edges[v])
-        old_w = len(self._edges[w])
+        old_v = len(self._src[v])
+        old_w = len(self._src[w])
 
-        self._edges[v].add(w)
-        self._edges[w].add(v)
+        self._src[v].add(w)
+        self._src[w].add(v)
 
-        self.E += (len(self._edges[v]) - old_v + len(self._edges[w]) - old_w) // 2
+        self.E += (len(self._src[v]) - old_v + len(self._src[w]) - old_w) // 2
 
     def delete(self, v, w):
         x = 0
-        if v in self._edges and w in self._edges[v]:
-            self._edges[v].remove(w)
-            if len(self._edges[v]) == 0:
-                del self._edges[v]
+        if v in self._src and w in self._src[v]:
+            self._src[v].remove(w)
+            if len(self._src[v]) == 0:
+                del self._src[v]
             x +=1
-        if w in self._edges and v in self._edges[w]:
-            self._edges[w].remove(v)
-            if len(self._edges[w]) == 0:
-                del self._edges[w]
+        if w in self._src and v in self._src[w]:
+            self._src[w].remove(v)
+            if len(self._src[w]) == 0:
+                del self._src[w]
             x +=1
         
         self.E -= max(min(x, 1), 0)
@@ -54,7 +175,7 @@ class UndirectedGraph(object):
 
     def vertices(self) -> object:
         if self.E:
-            for k in self._edges.keys():
+            for k in self._src.keys():
                 yield k
         else:
             raise StopIteration
@@ -70,14 +191,14 @@ class UndirectedGraph(object):
                 seen.add(key)
 
     def num_vertices(self) -> int:
-        return len(self._edges)
+        return len(self._src)
 
     def num_edges(self) -> int:
         return self.E
 
     def adj(self, v) -> object:
-        if v in self._edges:
-            for x in self._edges[v]:
+        if v in self._src:
+            for x in self._src[v]:
                 yield x
         else:
             raise StopIteration

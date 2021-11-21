@@ -69,7 +69,7 @@ class KruskalMST(MST):
                 mst.add(v, w, weight)
                 yield union.num_components(), mst
 
-        yield 1, mst
+        yield union.num_components(), mst
 
 
 

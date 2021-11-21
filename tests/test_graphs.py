@@ -1,5 +1,22 @@
 from cspatterns.datastructures import graphs
 
+def test_directed():
+    dg = graphs.DirectedGraph((0,1), (1,2), (2,3), (3,1))
+    assert sorted(dg.edges()) == [(0,1), (1,2), (2,3), (3,1)]
+    assert sorted(dg.reverse().edges()) == [(1, 0), (1, 3), (2, 1), (3, 2)]
+
+    dg.add(3,4)
+    dg.add(4,5)
+    dg.add(5,6)
+    dg.add(6,4)
+    dg.add(6,0)
+
+    assert dg.topological_sort() == [6, 5, 4, 3, 2, 1, 0]
+
+    print(dg.find_connected_components())
+
+
+
 def test_undirected():
     ug = graphs.UndirectedGraph((5, 6), (5, 7), (6, 7))
     assert sorted(ug.edges()) == [(5, 6), (5, 7), (6, 7)]
