@@ -109,7 +109,7 @@ class DirectedGraph(object):
                     
                 stack.append(v)
                 while stack:
-                    print('loop', stack, out, seen)
+                    print('stack=', stack, 'out=', out, 'seen=', seen)
                     x = stack.pop()
                     if x not in seen:
                         for w in self.adj(x):
