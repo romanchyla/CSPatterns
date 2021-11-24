@@ -19,7 +19,7 @@ def test_postorder():
     b = graphs.postorder_iter(g)
     assert a == b
 
-def xtest_directed():
+def test_directed():
     dg = graphs.DirectedGraph((0,1), (1,2), (2,3), (3,1))
     assert sorted(dg.edges()) == [(0,1), (1,2), (2,3), (3,1)]
     assert sorted(dg.reverse().edges()) == [(1, 0), (1, 3), (2, 1), (3, 2)]
@@ -34,17 +34,18 @@ def xtest_directed():
     dg.add(7,0)
 
     assert dg.topological_sort() == [7, 6, 5, 4, 3, 2, 1, 0]
-    #   assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0])])]
+    #assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0])])]
 
     # add non-cycle component
     dg.add(10, 11)
     dg.add(11, 12)
-    print(dg.find_connected_components())
-    assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0]), 10])]
+    assert dg.topological_sort() == [7, 6, 5, 4, 3, 2, 1, 0, 12, 11, 10]
+    #assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0]), 10])]
+    assert dg.find_connected_components() == deque([10, 11, 12, deque([2, 3, 1, 4, deque([5, 6, 7]), 0, 1])])
 
     # break the cycle in the first cc
     dg.delete(7, 0)
-    print(dg.find_connected_components())
+    assert dg.find_connected_components() == deque([10, 11, 12, 0, deque([1, 2, 3]), 4, deque([5, 6, 7])])
 
 
 def test_undirected():

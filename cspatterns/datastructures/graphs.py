@@ -69,9 +69,6 @@ class DirectedGraph(object):
             self._src[v].remove(w)
             if len(self._src[v]) == 0:
                 del self._src[v]
-            self._sinks[w] -= 1
-            if self._sinks[w] < 1:
-                self._sinks.remove(w)
             x +=1
         self.E -= max(min(x, 1), 0)
 
@@ -104,24 +101,7 @@ class DirectedGraph(object):
         return grev
 
     def topological_sort(self):
-        stack = []
-        seen = set()
-        out = [None] * self.num_vertices()
-        N = 0
-        for v in self.vertices():
-            if v not in seen:
-                stack.append(v)
-
-                while stack:
-                    while stack[-1] not in seen:
-                        n = stack[-1]
-                        for w in self.adj(n):
-                            if w not in seen:
-                                stack.append(w)
-                        seen.add(n)
-                    out[N] = stack.pop()
-                    N += 1
-        return out          
+        return postorder_iter(self)          
 
 
     def find_connected_components(self):
@@ -144,11 +124,11 @@ class DirectedGraph(object):
         print('ts', ts)
         seen = set()
         dfs_stack = []
-        out = []
+        pointer = deque()
+        
 
         for v in ts:
             if v not in seen:
-                pointer = deque()
                 cycle_end, cycle_start = [(float('inf'), float('inf'))], [-1]
                 cycle_stack = []
                 dfs_stack = [v]
@@ -184,9 +164,8 @@ class DirectedGraph(object):
                     else:
                         pointer.appendleft(v)
                 
-                out.append(pointer)
                         
-        return out
+        return pointer
             
 
 
