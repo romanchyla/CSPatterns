@@ -1,5 +1,42 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from cspatterns.datastructures import unionfind
+
+def postorder_dfs(graph):
+    seen = set()
+    out = []
+    def dfs(v, graph, out):
+        if v in seen:
+            return
+        seen.add(v)
+        for w in graph.adj(v):
+            if w not in seen:
+                dfs(w, graph, out)
+        out.append(v)
+    for v in graph.vertices():
+        if v not in seen:
+            dfs(v, graph, out)
+    return out
+
+def postorder_iter(graph):
+    stack = []
+    seen = set()
+    out = []
+    for v in graph.vertices():
+        if v not in seen:
+            stack.append((v, False))
+            while stack:
+                x,xdone = stack.pop()
+                if xdone:
+                    out.append(x)
+                elif x not in seen:
+                    stack.append((x, True))
+                    seen.add(x)
+                    # probably slight perf hit but will produce
+                    # the same order as recursive DFS
+                    for w in reversed(list(graph.adj(x))):
+                        stack.append((w, False))
+    return out
+  
 
 class DirectedGraph(object):
     """
@@ -22,12 +59,19 @@ class DirectedGraph(object):
         self._src[v].add(w)
         self.E += len(self._src[v]) - old_v
 
+        if w not in self._src:
+            self._src[w]
+
+
     def delete(self, v, w):
         x = 0
         if v in self._src and w in self._src[v]:
             self._src[v].remove(w)
             if len(self._src[v]) == 0:
                 del self._src[v]
+            self._sinks[w] -= 1
+            if self._sinks[w] < 1:
+                self._sinks.remove(w)
             x +=1
         self.E -= max(min(x, 1), 0)
 
@@ -51,8 +95,7 @@ class DirectedGraph(object):
         if v in self._src:
             for x in self._src[v]:
                 yield x
-        else:
-            raise StopIteration
+        
 
     def reverse(self):
         grev = DirectedGraph()
@@ -63,7 +106,8 @@ class DirectedGraph(object):
     def topological_sort(self):
         stack = []
         seen = set()
-        out = []
+        out = [None] * self.num_vertices()
+        N = 0
         for v in self.vertices():
             if v not in seen:
                 stack.append(v)
@@ -75,7 +119,8 @@ class DirectedGraph(object):
                             if w not in seen:
                                 stack.append(w)
                         seen.add(n)
-                    out.append(stack.pop())
+                    out[N] = stack.pop()
+                    N += 1
         return out          
 
 
@@ -96,34 +141,52 @@ class DirectedGraph(object):
         grev = self.reverse()
         ts = grev.topological_sort()
 
-        ccs = []
-        pointer = None
-        seen = set()
-        stack = []
         print('ts', ts)
-        for v in ts:
-            print(v, seen)
-            if v not in seen:
-                cycle_found = False
-                out = []
-                    
-                stack.append(v)
-                while stack:
-                    print('stack=', stack, 'out=', out, 'seen=', seen)
-                    x = stack.pop()
-                    if x not in seen:
-                        for w in self.adj(x):
-                            stack.append(w)
-                        out.append(x)
-                        seen.add(x)
-                    elif x == v:
-                        cycle_found = True
+        seen = set()
+        dfs_stack = []
+        out = []
 
-                if cycle_found:
-                    ccs.append(out)
-                else:
-                    ccs.extend(out)
-        return ccs
+        for v in ts:
+            if v not in seen:
+                pointer = deque()
+                cycle_end, cycle_start = [(float('inf'), float('inf'))], [-1]
+                cycle_stack = []
+                dfs_stack = [v]
+
+                while dfs_stack:
+                    while dfs_stack[-1] not in seen:
+                        x = dfs_stack[-1]
+                        for w in self.adj(x):
+                            if w in seen: # cycle detected
+                                cycle_end.append((w, x))
+                                print('cycle x={} w={}'.format(x, w))
+                            else:
+                                dfs_stack.append(w)
+                        seen.add(x)
+                        
+                    v = dfs_stack.pop()
+                    start, end = cycle_start[-1], cycle_end[-1][1]                       
+                    print('v={} start={} end={} '.format(v, start, end))
+
+                    if v == end: # go to deeper level (nested cycle)
+                        while cycle_end[-1][1] == end:
+                            cycle_stack.append(pointer)
+                            pointer = deque()
+                            cycle_start.append(cycle_end.pop()[0])
+                        pointer.appendleft(v)
+                        cycles_found = True
+                    elif v == start: # exit this level (cycle)
+                        pointer.appendleft(v)
+                        while cycle_start[-1] == start:
+                            cycle_stack[-1].appendleft(pointer)
+                            pointer = cycle_stack.pop()
+                            cycle_start.pop()
+                    else:
+                        pointer.appendleft(v)
+                
+                out.append(pointer)
+                        
+        return out
             
 
 

@@ -1,20 +1,50 @@
 from cspatterns.datastructures import graphs
+from collections import deque
+from itertools import combinations, combinations_with_replacement
+import random
 
-def test_directed():
+random.seed('alhambra')
+
+def generate_graph(V, E, cls=graphs.DirectedGraph):
+    edges = set()
+    while len(edges) < E:
+        v, w = random.randint(0, V), random.randint(0, V)
+        edges.add((v,w))
+    g = cls(*list(edges))
+    return g
+
+def test_postorder():
+    g = generate_graph(10000, 5000)
+    a = graphs.postorder_dfs(g) # 50K edges produces max recursion error
+    b = graphs.postorder_iter(g)
+    assert a == b
+
+def xtest_directed():
     dg = graphs.DirectedGraph((0,1), (1,2), (2,3), (3,1))
     assert sorted(dg.edges()) == [(0,1), (1,2), (2,3), (3,1)]
     assert sorted(dg.reverse().edges()) == [(1, 0), (1, 3), (2, 1), (3, 2)]
 
     dg.add(3,4)
     dg.add(4,5)
+
     dg.add(5,6)
-    dg.add(6,4)
-    dg.add(6,0)
+    dg.add(6,7)
+    dg.add(7,5)
 
-    assert dg.topological_sort() == [6, 5, 4, 3, 2, 1, 0]
+    dg.add(7,0)
 
+    assert dg.topological_sort() == [7, 6, 5, 4, 3, 2, 1, 0]
+    #   assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0])])]
+
+    # add non-cycle component
+    dg.add(10, 11)
+    dg.add(11, 12)
     print(dg.find_connected_components())
+    assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0]), 10])]
 
+    # break the cycle in the first cc
+    dg.delete(7, 0)
+    print(dg.find_connected_components())
 
 
 def test_undirected():
@@ -78,3 +108,6 @@ def test_weighted_undirected():
 
     assert ug.find_connected_components() == [[(1, 2, 0.0)], [(3, 4, 3.0)], [(5, 6, 1.0), (5, 7, 3.0), (6, 7, 2.0)]]
     
+
+if __name__ == '__main__':
+    test_directed()
