@@ -122,48 +122,52 @@ class DirectedGraph(object):
         ts = grev.topological_sort()
 
         print('ts', ts)
-        seen = set()
+        visited = set() # for when we are finished
+        
         dfs_stack = []
         pointer = deque()
         
 
         for v in ts:
-            if v not in seen:
+            if v not in visited:
                 cycle_end, cycle_start = [(float('inf'), float('inf'))], [-1]
                 cycle_stack = []
-                dfs_stack = [v]
+                discovered = set() # when seen but not yet processed
+                dfs_stack = [(v, False)]
 
                 while dfs_stack:
-                    while dfs_stack[-1] not in seen:
-                        x = dfs_stack[-1]
-                        for w in self.adj(x):
-                            if w in seen: # cycle detected
-                                cycle_end.append((w, x))
-                                print('cycle x={} w={}'.format(x, w))
-                            else:
-                                dfs_stack.append(w)
-                        seen.add(x)
-                        
-                    v = dfs_stack.pop()
-                    start, end = cycle_start[-1], cycle_end[-1][1]                       
-                    print('v={} start={} end={} '.format(v, start, end))
+                    v,vdone = dfs_stack.pop()
+                    print(v, vdone)
+                    if vdone: # post-order return
+                        start, end = cycle_start[-1], cycle_end[-1][1]                       
+                        print('v={} start={} end={} '.format(v, start, end))
 
-                    if v == end: # go to deeper level (nested cycle)
-                        while cycle_end[-1][1] == end:
-                            cycle_stack.append(pointer)
-                            pointer = deque()
-                            cycle_start.append(cycle_end.pop()[0])
-                        pointer.appendleft(v)
-                        cycles_found = True
-                    elif v == start: # exit this level (cycle)
-                        pointer.appendleft(v)
-                        while cycle_start[-1] == start:
-                            cycle_stack[-1].appendleft(pointer)
-                            pointer = cycle_stack.pop()
-                            cycle_start.pop()
+                        if v == end: # go to deeper level (nested cycle)
+                            while cycle_end[-1][1] == end:
+                                cycle_stack.append(pointer)
+                                pointer = deque()
+                                cycle_start.append(cycle_end.pop()[0])
+                            pointer.appendleft(v)
+                            cycles_found = True
+                        elif v == start: # exit this level (cycle)
+                            pointer.appendleft(v)
+                            while cycle_start[-1] == start:
+                                cycle_stack[-1].appendleft(pointer)
+                                pointer = cycle_stack.pop()
+                                cycle_start.pop()
+                        else:
+                            pointer.appendleft(v)
                     else:
-                        pointer.appendleft(v)
-                
+                        if v not in visited:
+                            discovered.add(v)
+                            dfs_stack.append((v, True))
+                            for w in self.adj(v):
+                                if w in discovered: # cycle detected (w marks the node we entered the cycle)
+                                    cycle_end.append((w, v))
+                                    print('cycle detected_at={} for={}'.format(v, w))
+                                else:
+                                    dfs_stack.append((w, False))
+                            visited.add(v)
                         
         return pointer
             
