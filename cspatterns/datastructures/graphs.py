@@ -114,62 +114,46 @@ class DirectedGraph(object):
 
 
         @return: List[int, [int, int], ....]
-                the nested list identifies cyclic connected 
-                components
+                the nested list identifies cycles
         """
 
-        grev = self.reverse()
-        ts = grev.topological_sort()
+        ts = self.topological_sort()
 
         print('ts', ts)
         visited = set() # for when we are finished
         
         dfs_stack = []
-        pointer = deque()
+        out = deque()
         
 
         for v in ts:
             if v not in visited:
-                cycle_end, cycle_start = [(float('inf'), float('inf'))], [-1]
-                cycle_stack = []
-                discovered = set() # when seen but not yet processed
-                dfs_stack = [(v, False)]
+                discovered = set()
+                pointer = deque()
+                dfs_stack.append((v, False))
 
                 while dfs_stack:
                     v,vdone = dfs_stack.pop()
                     print(v, vdone)
                     if vdone: # post-order return
-                        start, end = cycle_start[-1], cycle_end[-1][1]                       
-                        print('v={} start={} end={} '.format(v, start, end))
-
-                        if v == end: # go to deeper level (nested cycle)
-                            while cycle_end[-1][1] == end:
-                                cycle_stack.append(pointer)
-                                pointer = deque()
-                                cycle_start.append(cycle_end.pop()[0])
-                            pointer.appendleft(v)
-                            cycles_found = True
-                        elif v == start: # exit this level (cycle)
-                            pointer.appendleft(v)
-                            while cycle_start[-1] == start:
-                                cycle_stack[-1].appendleft(pointer)
-                                pointer = cycle_stack.pop()
-                                cycle_start.pop()
-                        else:
-                            pointer.appendleft(v)
+                        pointer.appendleft(v)
                     else:
                         if v not in visited:
                             discovered.add(v)
+                            visited.add(v)
                             dfs_stack.append((v, True))
                             for w in self.adj(v):
-                                if w in discovered: # cycle detected (w marks the node we entered the cycle)
-                                    cycle_end.append((w, v))
-                                    print('cycle detected_at={} for={}'.format(v, w))
-                                else:
-                                    dfs_stack.append((w, False))
-                            visited.add(v)
-                        
-        return pointer
+                                if w not in visited:
+                                    if w in discovered: # cycle detected (w marks the node we entered the cycle)
+                                        print('cycle detected_at={} for={}'.format(v, w))
+                                    else:
+                                        dfs_stack.append((w, False))
+                if len(pointer) > 1:
+                    out.appendleft(list(pointer))
+                else:
+                    out.appendleft(pointer[0])
+        print('result', out)   
+        return list(out)
             
 
 
