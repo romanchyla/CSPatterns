@@ -18,6 +18,8 @@ def postorder_dfs(graph):
     return out
 
 def postorder_iter(graph):
+    """Returns stack with the element on top
+    of the stack to be examined first."""
     stack = []
     seen = set()
     out = []
@@ -101,58 +103,115 @@ class DirectedGraph(object):
         return grev
 
     def topological_sort(self):
-        return postorder_iter(self)          
-
-
-    def find_connected_components(self):
+        """Returns items in left-right order;
+        so that position of f(v) < f(w). In other
+        words 1->2->3 should produce [1, 2, 3]
         """
-        Kosaraju topological sort to identify strongly
-        connected components; even if the graph may 
-        contain cycles. We take care to use iterative
+        stack = postorder_iter(self)
+        while stack:
+            yield stack.pop()
+
+
+    def find_strongly_connected_components(self):
+        """
+        Strongly connected component is basically
+        a cycle (any vertex inside SCC can be reached
+        starting from any other vertex inside SCC)
+
+        This function will thus identify all SCCs and
+        turn the directed graph into DAG; even if there
+        were any cycles (SCCs) inside.
+
+        We use Kosaraju topological sort to identify strongly
+        connected components and take care to use iterative
         approach (instead of recursion) in case we have
         to deal with large graphs
+
+        I got this not exactly right several times, so here
+        is explanation for my future self:
+
+        The main goal is to identify *sink* vertices - and
+        collect connected components from the end (from sinks). If 
+        we do post-order DFS on the graph itself, we are
+        not guaranteed to always identify the sink vertex. 
+        Because the DFS will recurse and may end up going into
+        a shorter (blind) path which does not reach the real
+        last connected component. Because we go to the end,
+        these vertices will be emitted first for consideration.
+
+        And that is a problem because it means that we can
+        lump two SCC together, or have CC in inproper order.
+
+        But post-order DFS is guaranteed to always identify source
+        vertices. I.e. imagine DAG, with v->w path: because
+        we are exploring the graph randomly (for each vertex)
+        there are two options:
+
+        (w)
+        Either we hit 'w' first, which will assign 'w' higher
+        topological order. When we (eventually) get to explore
+        'v' (w was already visited) 'v' will have topological
+        smaller order. So 'v' is on left of w.
+
+        (v)
+        In case when we hit 'v' first; because of the post-order
+        DFS we end up assigning 'w' higher topological order
+        (precisely because of post-order DFS descends into w
+        before processing v).
+
+        So either way: the starting vertices (source) are going
+        to be properly ordered.
+
+        For getting connected components; we desire to identify
+        'sink' components and start exploring the graph from the 
+        end. Since we can identify 'sources' reliably, the solution
+        is to reverese the graph first; then run post-order DFS
+        on G_rev in order to find 'sources' of Grev. (sources of
+        G_rev are the same thing as true 'sinks' of the original 
+        graph)
+
+        So if we got sinks of G; we can then reliably collect 
+        connected components - because whatever we do, whichever
+        cycle we may enter, we are chopping of parts of the graph
+        from right.
 
 
         @return: List[int, [int, int], ....]
                 the nested list identifies cycles
         """
 
-        ts = self.topological_sort()
-
-        print('ts', ts)
-        visited = set() # for when we are finished
         
+        # iterator into sink vertices
+        sinks = self.reverse().topological_sort()
+
+        
+        visited = set() # for when we are finished
         dfs_stack = []
         out = deque()
         
 
-        for v in ts:
+        for v in sinks:
             if v not in visited:
-                discovered = set()
                 pointer = deque()
                 dfs_stack.append((v, False))
 
                 while dfs_stack:
                     v,vdone = dfs_stack.pop()
-                    print(v, vdone)
+                    #print(v, vdone)
                     if vdone: # post-order return
                         pointer.appendleft(v)
                     else:
                         if v not in visited:
-                            discovered.add(v)
                             visited.add(v)
                             dfs_stack.append((v, True))
                             for w in self.adj(v):
                                 if w not in visited:
-                                    if w in discovered: # cycle detected (w marks the node we entered the cycle)
-                                        print('cycle detected_at={} for={}'.format(v, w))
-                                    else:
-                                        dfs_stack.append((w, False))
-                if len(pointer) > 1:
+                                    dfs_stack.append((w, False))
+                if len(pointer) > 1: #only happens for cycles
                     out.appendleft(list(pointer))
                 else:
                     out.appendleft(pointer[0])
-        print('result', out)   
+        #print('result', out)
         return list(out)
             
 

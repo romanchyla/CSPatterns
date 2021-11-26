@@ -19,10 +19,15 @@ def test_postorder():
     b = graphs.postorder_iter(g)
     assert a == b
 
+    dg = graphs.DirectedGraph((0,1), (1,2), (2,3))
+    assert graphs.postorder_dfs(dg) == [3, 2, 1, 0]
+    assert graphs.postorder_iter(dg) == [3, 2, 1, 0]
+
 def test_directed():
     dg = graphs.DirectedGraph((0,1), (1,2), (2,3))
-    assert dg.topological_sort() == [3, 2, 1, 0]
-    assert graphs.postorder_iter(dg) == [3, 2, 1, 0]
+    assert list(dg.topological_sort()) == [0, 1, 2, 3]
+    assert list(dg.reverse().topological_sort()) == [3, 2, 1, 0]
+    
 
     dg = graphs.DirectedGraph((0,1), (1,2), (2,3), (3,1))
     assert sorted(dg.edges()) == [(0,1), (1,2), (2,3), (3,1)]
@@ -30,37 +35,38 @@ def test_directed():
 
     dg.add(3,4)
     dg.add(4,5)
-
     dg.add(5,6)
     dg.add(6,7)
     dg.add(7,5)
-
-    print('reverse', dg.reverse().topological_sort())
     dg.add(7,0)
 
-    assert dg.topological_sort() == [7, 6, 5, 4, 3, 2, 1, 0]
-    #  assert dg.find_connected_components() == [[2, 3, 4, 5, 6, 7, 0, 1]]
-    #assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0])])]
+    # cycle produces arbitrary enter vertex
+    assert list(dg.reverse().topological_sort()) == [1, 0, 7, 6, 5, 4, 3, 2]
+    assert dg.find_strongly_connected_components() == [[1, 2, 3, 4, 5, 6, 7, 0]]
+    
 
     # add non-cycle component
     dg.add(10, 11)
     dg.add(11, 12)
     
-    assert dg.topological_sort() == [7, 6, 5, 4, 3, 2, 1, 0, 12, 11, 10]
-    assert dg.find_connected_components() == [10, 11, 12, [7, 0, 1, 2, 3, 4, 5, 6]]
-    #assert dg.find_connected_components() == [deque([deque([deque([1, 2, 3]), 4, deque([5, 6, 7]), 0]), 10])]
+    assert list(dg.reverse().topological_sort()) == [12, 11, 10, 1, 0, 7, 6, 5, 4, 3, 2]
+    assert dg.find_strongly_connected_components() == [[1, 2, 3, 4, 5, 6, 7, 0], 10, 11, 12]
+
+    # connect CC1 to CC2 (still no cycle - so this should produce the same DAG)
+    dg.add(0, 10)
+    assert list(dg.reverse().topological_sort()) == [12, 11, 10, 1, 0, 7, 6, 5, 4, 3, 2]
+    assert dg.find_strongly_connected_components() == [[1, 2, 3, 4, 5, 6, 7, 0], 10, 11, 12]
+
     
 
     # break the cycle in the first cc
     dg.delete(7, 0)
-    print(list(dg.edges()))
-    assert dg.topological_sort() == [7, 6, 5, 4, 3, 2, 1, 0, 12, 11, 10]
-    print(dg.topological_sort())
-    #assert dg.find_connected_components() == deque([10, 11, 12, 0, deque([1, 2, 3]), 4, deque([5, 6, 7])])
-    assert dg.find_connected_components() == [10, 11, 12, 0, [3, 1, 2], 4, [7, 5, 6]]
+    assert list(dg.edges()) == [(0, 1), (0, 10), (1, 2), (2, 3), (3, 1), (3, 4), (4, 5), (5, 6), (6, 7), (7, 5), (10, 11), (11, 12)]
+    assert list(dg.reverse().topological_sort()) == [12, 11, 5, 7, 6, 4, 10, 1, 3, 2, 0]
+    assert dg.find_strongly_connected_components() == [0, [1, 2, 3], 10, 4, [5, 6, 7], 11, 12]
 
     dg.add(7, 10)
-    assert dg.find_connected_components() == [0, [3, 1, 2], 4, [7, 5, 6], 10, 11, 12]
+    assert dg.find_strongly_connected_components() == [0, [1, 2, 3], 4, [7, 5, 6], 10, 11, 12]
 
 
 def test_undirected():
