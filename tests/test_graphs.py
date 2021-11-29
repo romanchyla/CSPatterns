@@ -69,6 +69,51 @@ def test_directed():
     assert dg.find_strongly_connected_components() == [0, [1, 2, 3], 4, [7, 5, 6], 10, 11, 12]
 
 
+def test_directed_weighted():
+    dg = graphs.WeightedDirectedGraph((0,1,1.0), (1,2,2.0), (2,3,3.0))
+    assert list(dg.topological_sort()) == [0, 1, 2, 3]
+    assert list(dg.reverse().topological_sort()) == [3, 2, 1, 0]
+    
+
+    dg = graphs.WeightedDirectedGraph((0,1,1.0), (1,2,2.0), (2,3,3.0), (3,1,1.0))
+    assert sorted(dg.edges()) == [(0,1,1.0), (1,2,2.0), (2,3,3.0), (3,1,1.0)]
+    assert sorted(dg.reverse().edges()) == [(1, 0, 1.0), (1, 3,1.0), (2, 1,2.0), (3, 2,3.0)]
+
+    dg.add(3,4,4.0)
+    dg.add(4,5,5.0)
+    dg.add(5,6,6.0)
+    dg.add(6,7,7.0)
+    dg.add(7,5,5.0)
+    dg.add(7,0,0.0)
+
+    # cycle produces arbitrary enter vertex
+    assert list(dg.reverse().topological_sort()) == [1, 0, 7, 6, 5, 4, 3, 2]
+    assert dg.find_strongly_connected_components() == [[1, 2, 3, 4, 5, 6, 7, 0]]
+    
+
+    # add non-cycle component
+    dg.add(10, 11, 11.0)
+    dg.add(11, 12, 12.0)
+    
+    assert list(dg.reverse().topological_sort()) == [12, 11, 10, 1, 0, 7, 6, 5, 4, 3, 2]
+    assert dg.find_strongly_connected_components() == [[1, 2, 3, 4, 5, 6, 7, 0], 10, 11, 12]
+
+    # connect CC1 to CC2 (still no cycle - so this should produce the same DAG)
+    dg.add(0, 10, 10.0)
+    assert list(dg.reverse().topological_sort()) == [12, 11, 10, 1, 0, 7, 6, 5, 4, 3, 2]
+    assert dg.find_strongly_connected_components() == [[1, 2, 3, 4, 5, 6, 7, 0], 10, 11, 12]
+
+    
+
+    # break the cycle in the first cc
+    dg.delete(7, 0)
+    assert list(dg.reverse().topological_sort()) == [12, 11, 5, 7, 6, 4, 10, 1, 3, 2, 0]
+    assert dg.find_strongly_connected_components() == [0, [1, 2, 3], 10, 4, [5, 6, 7], 11, 12]
+
+    dg.add(7, 10, 10.0)
+    assert dg.find_strongly_connected_components() == [0, [1, 2, 3], 4, [7, 5, 6], 10, 11, 12]
+
+
 def test_undirected():
     ug = graphs.UndirectedGraph((5, 6), (5, 7), (6, 7))
     assert sorted(ug.edges()) == [(5, 6), (5, 7), (6, 7)]
@@ -132,4 +177,4 @@ def test_weighted_undirected():
     
 
 if __name__ == '__main__':
-    test_directed()
+    test_directed_weighted()
