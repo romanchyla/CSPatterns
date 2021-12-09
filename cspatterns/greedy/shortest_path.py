@@ -1,7 +1,5 @@
 import heapq
 
-from cspatterns.datastructures import graphs
-
 
 class DijkstraShortestPath(object):
     def __init__(self, graph, source) -> None:

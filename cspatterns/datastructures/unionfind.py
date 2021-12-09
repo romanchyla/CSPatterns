@@ -1,11 +1,13 @@
 from collections import defaultdict
 
+
 class UnionFind(object):
     """Impl of UnionFind with O(logN) find operation;
     we are keeping track of the size of the underlying
     branches; making them balanced. This class can use
     any values for a key (internally is mapped to ints)
     but we are doing no compression. Maybe later..."""
+
     def __init__(self, values=None):
         self._map = defaultdict(int)
         self._data = []
@@ -15,7 +17,7 @@ class UnionFind(object):
         if values:
             for v in values:
                 self.get_key(v)
-        #print(self._map, self._data, self._size, self._num_components)
+        # print(self._map, self._data, self._size, self._num_components)
 
     def get_key(self, v):
         key = self._map.get(v, len(self._map))
@@ -40,7 +42,7 @@ class UnionFind(object):
 
         if parentv == parentw:
             return
-        
+
         # connect the smaller to the bigger - that way
         # we are making sure that the tree height is
         # staying minimal (if we were to connect bigger
@@ -53,19 +55,15 @@ class UnionFind(object):
         self._size[parentw] += self._size[parentv]
         self._num_components -= 1
 
-    
     def is_connected(self, v, w):
         return self.find(v) == self.find(w)
-
 
     def num_components(self) -> int:
         """Return number of distinct components"""
         return self._num_components
 
-
     def size(self):
         return len(self._data)
-
 
     def compress(self):
         for i, v in enumerate(self._data):

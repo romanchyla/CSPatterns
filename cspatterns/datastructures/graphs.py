@@ -1,10 +1,15 @@
 from collections import defaultdict, deque
+
 from cspatterns.datastructures import unionfind
+
 
 def postorder_dfs(graph):
     seen = set()
     out = []
-    weighted = isinstance(graph, WeightedUndirectedGraph) or isinstance(graph, WeightedDirectedGraph)
+    weighted = isinstance(graph, WeightedUndirectedGraph) or isinstance(
+        graph, WeightedDirectedGraph
+    )
+
     def dfs(v, graph, out):
         if v in seen:
             return
@@ -15,10 +20,12 @@ def postorder_dfs(graph):
             if w not in seen:
                 dfs(w, graph, out)
         out.append(v)
+
     for v in graph.vertices():
         if v not in seen:
             dfs(v, graph, out)
     return out
+
 
 def postorder_iter(graph):
     """Returns stack with the element on top
@@ -26,12 +33,14 @@ def postorder_iter(graph):
     stack = []
     seen = set()
     out = []
-    weighted = isinstance(graph, WeightedDirectedGraph) or isinstance(graph, WeightedUndirectedGraph)
+    weighted = isinstance(graph, WeightedDirectedGraph) or isinstance(
+        graph, WeightedUndirectedGraph
+    )
     for v in graph.vertices():
         if v not in seen:
             stack.append((v, False))
             while stack:
-                x,xdone = stack.pop()
+                x, xdone = stack.pop()
                 if xdone:
                     out.append(x)
                 elif x not in seen:
@@ -40,18 +49,19 @@ def postorder_iter(graph):
                     # probably slight perf hit but will produce
                     # the same order as recursive DFS
                     if weighted:
-                        for w in reversed([w for w,_ in graph.adj(x)]):
+                        for w in reversed([w for w, _ in graph.adj(x)]):
                             stack.append((w, False))
                     else:
                         for w in reversed(list(graph.adj(x))):
                             stack.append((w, False))
     return out
-  
+
 
 class DirectedGraph(object):
     """
     DG using adjacency list
     """
+
     def __init__(self, *edges):
         self._src = defaultdict(set)
         self.E = 0
@@ -60,7 +70,7 @@ class DirectedGraph(object):
 
     def _key(self, v, w):
         return (v, w)
-    
+
     def has_vertex(self, v) -> bool:
         return v in self._src
 
@@ -75,16 +85,14 @@ class DirectedGraph(object):
         if w not in self._src:
             self._src[w]
 
-
     def delete(self, v, w):
         x = 0
         if v in self._src and w in self._src[v]:
             self._src[v].remove(w)
             if len(self._src[v]) == 0:
                 del self._src[v]
-            x +=1
+            x += 1
         self.E -= max(min(x, 1), 0)
-
 
     def vertices(self) -> object:
         for k in self._src.keys():
@@ -105,11 +113,10 @@ class DirectedGraph(object):
         if v in self._src:
             for w in self._src[v]:
                 yield w
-        
 
     def reverse(self):
         grev = self.__class__()
-        for v,w in self.edges():
+        for v, w in self.edges():
             grev.add(w, v)
         return grev
 
@@ -121,7 +128,6 @@ class DirectedGraph(object):
         stack = postorder_iter(self)
         while stack:
             yield stack.pop()
-
 
     def find_strongly_connected_components(self):
         """
@@ -142,9 +148,9 @@ class DirectedGraph(object):
         is explanation for my future self:
 
         The main goal is to identify *sink* vertices - and
-        collect connected components from the end (from sinks). If 
+        collect connected components from the end (from sinks). If
         we do post-order DFS on the graph itself, we are
-        not guaranteed to always identify the sink vertex. 
+        not guaranteed to always identify the sink vertex.
         Because the DFS will recurse and may end up going into
         a shorter (blind) path which does not reach the real
         last connected component. Because we go to the end,
@@ -174,14 +180,14 @@ class DirectedGraph(object):
         to be properly ordered.
 
         For getting connected components; we desire to identify
-        'sink' components and start exploring the graph from the 
+        'sink' components and start exploring the graph from the
         end. Since we can identify 'sources' reliably, the solution
         is to reverese the graph first; then run post-order DFS
         on G_rev in order to find 'sources' of Grev. (sources of
-        G_rev are the same thing as true 'sinks' of the original 
+        G_rev are the same thing as true 'sinks' of the original
         graph)
 
-        So if we got sinks of G; we can then reliably collect 
+        So if we got sinks of G; we can then reliably collect
         connected components - because whatever we do, whichever
         cycle we may enter, we are chopping of parts of the graph
         from right.
@@ -191,15 +197,15 @@ class DirectedGraph(object):
                 the nested list identifies cycles
         """
 
-        
         # iterator into sink vertices
         sinks = self.reverse().topological_sort()
 
-        
-        visited = set() # for when we are finished
+        visited = set()  # for when we are finished
         dfs_stack = []
         out = deque()
-        weighted = isinstance(self, WeightedUndirectedGraph) or isinstance(self, WeightedDirectedGraph)
+        weighted = isinstance(self, WeightedUndirectedGraph) or isinstance(
+            self, WeightedDirectedGraph
+        )
 
         for v in sinks:
             if v not in visited:
@@ -207,9 +213,9 @@ class DirectedGraph(object):
                 dfs_stack.append((v, False))
 
                 while dfs_stack:
-                    v,vdone = dfs_stack.pop()
-                    #print(v, vdone)
-                    if vdone: # post-order return
+                    v, vdone = dfs_stack.pop()
+                    # print(v, vdone)
+                    if vdone:  # post-order return
                         pointer.appendleft(v)
                     else:
                         if v not in visited:
@@ -220,13 +226,13 @@ class DirectedGraph(object):
                                     w = w[0]
                                 if w not in visited:
                                     dfs_stack.append((w, False))
-                if len(pointer) > 1: #only happens for cycles
+                if len(pointer) > 1:  # only happens for cycles
                     out.appendleft(list(pointer))
                 else:
                     out.appendleft(pointer[0])
-        #print('result', out)
+        # print('result', out)
         return list(out)
-            
+
 
 class WeightedDirectedGraph(DirectedGraph):
     def __init__(self, *args, **kwargs):
@@ -235,22 +241,22 @@ class WeightedDirectedGraph(DirectedGraph):
         super().__init__(*args, **kwargs)
 
     def add(self, v, w, weight):
-        super().add(v,w)
-        key = self._key(v,w)
+        super().add(v, w)
+        key = self._key(v, w)
         self._total_weight = self._total_weight - self._weights.get(key, 0) + weight
         self._weights[key] = weight
 
     def delete(self, v, w):
-        super().delete(v,w)
-        key = self._key(v,w)
+        super().delete(v, w)
+        key = self._key(v, w)
         weight = self._weights[key]
         del self._weights[key]
         self._total_weight -= weight
-    
+
     def edges(self):
-        for v,w in super().edges():
-            yield (v, w, self._weights[(v,w)])
-    
+        for v, w in super().edges():
+            yield (v, w, self._weights[(v, w)])
+
     def adj(self, v):
         for w in super().adj(v):
             key = self._key(v, w)
@@ -260,32 +266,34 @@ class WeightedDirectedGraph(DirectedGraph):
         return self._total_weight
 
     def update_weight(self, v, w, weight):
-        key = self._key(v,w)
+        key = self._key(v, w)
         if key not in self._weights:
-            raise Exception('The edge {} is not present', key)
+            raise Exception("The edge {} is not present", key)
         self._total_weight = self._total_weight - self._weights.get(key, 0) + weight
         self._weights[key] = weight
 
     def get_weight(self, v, w, default=None) -> float:
-        key = self._key(v,w)
+        key = self._key(v, w)
         if key in self._weights:
             return self._weights[key]
         else:
             if default is None:
-                raise Exception('The edge {} is not present', key)
+                raise Exception("The edge {} is not present", key)
             else:
-                return default    
+                return default
 
     def reverse(self):
         grev = self.__class__()
-        for v,w,weight in self.edges():
+        for v, w, weight in self.edges():
             grev.add(w, v, weight)
         return grev
+
 
 class UndirectedGraph(object):
     """
     Undirected graph using adjacency list
     """
+
     def __init__(self, *edges):
         self._src = defaultdict(set)
         self.E = 0
@@ -300,7 +308,7 @@ class UndirectedGraph(object):
 
     def has_vertex(self, v) -> bool:
         return v in self._src
-    
+
     def has(self, v, w) -> bool:
         return v in self._src and self._src[v].get(w, False)
 
@@ -319,15 +327,14 @@ class UndirectedGraph(object):
             self._src[v].remove(w)
             if len(self._src[v]) == 0:
                 del self._src[v]
-            x +=1
+            x += 1
         if w in self._src and v in self._src[w]:
             self._src[w].remove(v)
             if len(self._src[w]) == 0:
                 del self._src[w]
-            x +=1
-        
-        self.E -= max(min(x, 1), 0)
+            x += 1
 
+        self.E -= max(min(x, 1), 0)
 
     def vertices(self) -> object:
         if self.E:
@@ -369,6 +376,7 @@ class UndirectedGraph(object):
             ccs[uf.find(e[0])].append(e)
         return list(ccs.values())
 
+
 class WeightedUndirectedGraph(UndirectedGraph):
     def __init__(self, *args, **kwargs):
         self._weights = {}
@@ -376,22 +384,22 @@ class WeightedUndirectedGraph(UndirectedGraph):
         super().__init__(*args, **kwargs)
 
     def add(self, v, w, weight):
-        super().add(v,w)
-        key = self._key(v,w)
+        super().add(v, w)
+        key = self._key(v, w)
         self._total_weight = self._total_weight - self._weights.get(key, 0) + weight
         self._weights[key] = weight
 
     def delete(self, v, w):
-        super().delete(v,w)
-        key = self._key(v,w)
+        super().delete(v, w)
+        key = self._key(v, w)
         weight = self._weights[key]
         del self._weights[key]
         self._total_weight -= weight
-    
+
     def edges(self):
-        for v,w in super().edges():
-            yield (v, w, self._weights[(v,w)])
-    
+        for v, w in super().edges():
+            yield (v, w, self._weights[(v, w)])
+
     def adj(self, v):
         for w in super().adj(v):
             key = self._key(v, w)
@@ -401,18 +409,18 @@ class WeightedUndirectedGraph(UndirectedGraph):
         return self._total_weight
 
     def update_weight(self, v, w, weight):
-        key = self._key(v,w)
+        key = self._key(v, w)
         if key not in self._weights:
-            raise Exception('The edge {} is not present', key)
+            raise Exception("The edge {} is not present", key)
         self._total_weight = self._total_weight - self._weights.get(key, 0) + weight
         self._weights[key] = weight
 
     def get_weight(self, v, w, default=None) -> float:
-        key = self._key(v,w)
+        key = self._key(v, w)
         if key in self._weights:
             return self._weights[key]
         else:
             if default is None:
-                raise Exception('The edge {} is not present', key)
+                raise Exception("The edge {} is not present", key)
             else:
                 return default

@@ -60,6 +60,14 @@ build_command = "flit build"
 
 [tool.pytest.ini_options]
 addopts = "-v -Wdefault --cov=cspatterns"
+cache_dir = ".tmp/"
+
+[tool.coverage.run]
+data_file = ".tmp/.coverage"
+
+[tool.coverage.report]
+skip_empty = true
+skip_covered = true
 
 [tool.isort]
 profile = "black"

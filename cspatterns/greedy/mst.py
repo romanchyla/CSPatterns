@@ -129,7 +129,7 @@ def test():
     assert mst.total_weight() == 8.0
 
     kruskal = KruskalMST(uwg)
-    mst = prim.extract()
+    mst = kruskal.extract()
 
     assert sorted(list(mst.edges())) == [("a", "b", 3.0), ("b", "c", 3.0), ("c", "d", 2.0)]
     assert mst.total_weight() == 8.0
