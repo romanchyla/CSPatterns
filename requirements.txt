@@ -1,1 +1,0 @@
-git+https://github.com/romanchyla/ProjectsC.git@0.0.2

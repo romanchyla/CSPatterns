@@ -1,0 +1,73 @@
+[project]
+name = "cspatterns"
+version = "0.0.0"
+description = "Python project created to explore a problem."
+authors = [{ name = "Roman Chyla", email = "roman.chyla@gmail.com"}]
+license = { text = "MIT" }
+readme = "README.md"
+repository = "https://github.com/romanchyla/cspatterns"
+documentation = "https://cspatterns.readthedocs.io"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+]
+packages = [
+    { include = "cspatterns" },
+]
+
+dependencies = [
+    'git+https://github.com/romanchyla/rprojc.git'
+]
+
+
+[project.urls]
+Source = "https://github.com/romanchyla/cspatterns"
+Documentation = "https://cspatterns.readthedocs.io"
+
+
+[project.optional-dependencies]
+dev = [
+    'black==21.11b1',
+    'flake8==4.0.1',
+    'isort==5.10.1',
+    'pytest==6.2.5',
+    'pyupgrade==2.29.1',
+    'pytest-mock==3.6.1',
+    'pre-commit==2.16.0',
+    'coveralls==3.3.1',
+    'mock==4.0.3',
+    'coverage==6.2',
+    'pytest-cov==3.0.0',
+    'pytest-cookies==0.6.1',
+    'semantic-release==0.1.0',
+]
+
+docs = [
+    'Sphinx==4.3.1',
+    'myst-parser==0.15.2',
+    'sphinx-rtd-theme==1.0.0'
+]
+
+
+[tool.semantic_release]
+branch = "main"
+version_toml = "pyproject.toml:project.version"
+version_variable = "cspatterns/__init__.py:__version__"
+build_command = "flit build"
+
+[tool.pytest.ini_options]
+addopts = "-v -Wdefault --cov=cspatterns"
+
+[tool.isort]
+profile = "black"
+known_first_party = ["cspatterns", "tests"]
+
+[tool.black]
+line-length = 99 # override black's default line-length
+
+[build-system]
+requires = ["setuptools >= 58.6.0", "wheel", "flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
