@@ -33,6 +33,8 @@ class DijkstraShortestPath(object):
                 if dst_to[v] + edge_weight < dst_to[w]:
                     # print('dst_to[v]={}, adding w={}'.format(dst_to[v], w))
                     dst_to[w] = dst_to[v] + edge_weight
+                    if dst_to[w] < 0:  # we've entered a negative cycle
+                        raise Exception("Entered a negative cycle, not good")
                     heapq.heappush(
                         pq, (dst_to[w], w)
                     )  # TODO: if we had indexed PQ we can replace value for 'w'
