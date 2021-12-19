@@ -3,6 +3,7 @@
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+# if I ever want to make it nicer: https://github.com/construct/construct/tree/master/docs
 
 # -- Path setup --------------------------------------------------------------
 
@@ -47,8 +48,8 @@ exclude_patterns = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-html_theme = "sphinx_rtd_theme"
+
+html_theme = "haiku"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

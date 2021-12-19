@@ -15,10 +15,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 packages = [
-    { include = "cspatterns" },
+    "cspatterns",
 ]
 
 dependencies = [
+    'click>==8.0.3',
+    # 'package @ git+ssh://git@github.com/someorgname/pkg-repo-name@[v1.1]#egg=some-pkg',
+    # 'package @ git+https://github.com/someorgname/pkg-repo-name@[v1.1]#egg=some-pkg',
 ]
 
 
@@ -43,7 +46,6 @@ dev = [
     'pytest-cookies==0.6.1',
     'semantic-release==0.1.0',
 ]
-
 docs = [
     'Sphinx==4.3.1',
     'myst-parser==0.15.2',
@@ -54,7 +56,7 @@ docs = [
 [tool.semantic_release]
 branch = "main"
 version_toml = "pyproject.toml:project.version"
-version_variable = "cspatterns/__init__.py:__version__"
+version_variable = "cspatterns/version.py:__version__"
 build_command = "flit build"
 
 [tool.pytest.ini_options]
@@ -73,8 +75,19 @@ profile = "black"
 known_first_party = ["cspatterns", "tests"]
 
 [tool.black]
-line-length = 95 # override black's default line-length
+line-length = 99 # override black's default line-length
 
 [build-system]
-requires = ["setuptools >= 58.6.0", "wheel", "flit_core >=3.2,<4"]
+requires = ["setuptools >= 58.6.0", "wheel", "flit_core >=3.2,<4", "ppsetuptools==2.0.2"]
 build-backend = "flit_core.buildapi"
+#build-backend = "setuptools.build_meta"
+
+# see setup.py for explanation of these
+[xsetup.entry_points]
+console_scripts = [
+    "cspatterns=cspatterns.cli:cli",
+    "rtool=rtool:cli"
+]
+[xsetup]
+scripts = [
+]
